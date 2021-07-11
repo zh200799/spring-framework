@@ -137,12 +137,14 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 
 
 	// Internal helpers
-
 	private void startBeans(boolean autoStartupOnly) {
+		// 取得所有 Lifecycle 接口的实例, 此 map 的key 是实例的名称, value 是实例
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
+		// 有序的 phases, 按照 phase 进行分组
 		Map<Integer, LifecycleGroup> phases = new TreeMap<>();
 
 		lifecycleBeans.forEach((beanName, bean) -> {
+			// autoStartupOnly 为 true 时,bean 必须实现 SmartLifecycle 接口,并且 isAutoStartup 返回 true 时才进入条件
 			if (!autoStartupOnly || (bean instanceof SmartLifecycle && ((SmartLifecycle) bean).isAutoStartup())) {
 				int phase = getPhase(bean);
 				phases.computeIfAbsent(
@@ -152,6 +154,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			}
 		});
 		if (!phases.isEmpty()) {
+			// 遍历调用各实例对象的 start 方法
 			phases.values().forEach(LifecycleGroup::start);
 		}
 	}
@@ -167,6 +170,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 		if (bean != null && bean != this) {
 			String[] dependenciesForBean = getBeanFactory().getDependenciesForBean(beanName);
 			for (String dependency : dependenciesForBean) {
+				// 如果该 beanName 有实现类则迭代调用
 				doStart(lifecycleBeans, dependency, autoStartupOnly);
 			}
 			if (!bean.isRunning() &&
@@ -188,21 +192,27 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	}
 
 	private void stopBeans() {
+		// 取得所有实现 Lifecycle 接口的实例
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
 		Map<Integer, LifecycleGroup> phases = new HashMap<>();
 		lifecycleBeans.forEach((beanName, bean) -> {
+			// 实现 SmartLifecycle 接口的实例通过 getPhase 方法返回
+			// 实现了 Lifecycle 接口的实例直接返回 0
 			int shutdownPhase = getPhase(bean);
 			LifecycleGroup group = phases.get(shutdownPhase);
 			if (group == null) {
 				group = new LifecycleGroup(shutdownPhase, this.timeoutPerShutdownPhase, lifecycleBeans, false);
+
 				phases.put(shutdownPhase, group);
 			}
 			group.add(beanName, bean);
 		});
 		if (!phases.isEmpty()) {
 			List<Integer> keys = new ArrayList<>(phases.keySet());
+			// 按照 phase 排序,和启动时顺序相反
 			keys.sort(Collections.reverseOrder());
 			for (Integer key : keys) {
+				// 调用 stop 方法
 				phases.get(key).stop();
 			}
 		}
@@ -214,16 +224,17 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * @param lifecycleBeans a Map with bean name as key and Lifecycle instance as value
 	 * @param beanName the name of the bean to stop
 	 */
-	private void doStop(Map<String, ? extends Lifecycle> lifecycleBeans, final String beanName,
-			final CountDownLatch latch, final Set<String> countDownBeanNames) {
-
+	private void doStop(Map<String, ? extends Lifecycle> lifecycleBeans, final String beanName, final CountDownLatch latch, final Set<String> countDownBeanNames) {
+		// 从成员变量 LifecycleBeans 中remove 当前 bean,标识已经执行过 stop 方法
 		Lifecycle bean = lifecycleBeans.remove(beanName);
 		if (bean != null) {
+			// 找出依赖 bean,通过迭代保证依赖的 bean 先执行 stop 方法
 			String[] dependentBeans = getBeanFactory().getDependentBeans(beanName);
 			for (String dependentBean : dependentBeans) {
 				doStop(lifecycleBeans, dependentBean, latch, countDownBeanNames);
 			}
 			try {
+				// isRunning 方法返回 true 时才会执行 stop 方法
 				if (bean.isRunning()) {
 					if (bean instanceof SmartLifecycle) {
 						if (logger.isTraceEnabled()) {
@@ -231,6 +242,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 									bean.getClass().getName() + "] to stop");
 						}
 						countDownBeanNames.add(beanName);
+						// stop 方法中可以使用新的线程执行
 						((SmartLifecycle) bean).stop(() -> {
 							latch.countDown();
 							countDownBeanNames.remove(beanName);
@@ -238,24 +250,23 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 								logger.debug("Bean '" + beanName + "' completed its stop procedure");
 							}
 						});
-					}
-					else {
+					} else {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Stopping bean '" + beanName + "' of type [" +
 									bean.getClass().getName() + "]");
 						}
+						// 不是 SmartLifecycle 实例,就调用 stop 在当前线程中执行
 						bean.stop();
 						if (logger.isDebugEnabled()) {
 							logger.debug("Successfully stopped bean '" + beanName + "'");
 						}
 					}
-				}
-				else if (bean instanceof SmartLifecycle) {
+				} else if (bean instanceof SmartLifecycle) {
+					// 如果不在 running 状态则直接将 latch-1
 					// Don't wait for beans that aren't running...
 					latch.countDown();
 				}
-			}
-			catch (Throwable ex) {
+			} catch (Throwable ex) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Failed to stop bean '" + beanName + "'", ex);
 				}
@@ -365,19 +376,22 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 				logger.debug("Stopping beans in phase " + this.phase);
 			}
 			this.members.sort(Collections.reverseOrder());
+			// 同步计数器
 			CountDownLatch latch = new CountDownLatch(this.smartMemberCount);
 			Set<String> countDownBeanNames = Collections.synchronizedSet(new LinkedHashSet<>());
 			Set<String> lifecycleBeanNames = new HashSet<>(this.lifecycleBeans.keySet());
 			for (LifecycleGroupMember member : this.members) {
 				if (lifecycleBeanNames.contains(member.name)) {
+					// doStop 方法中 SmartLifecycle 的stop 方法可能会在新线程中执行,执行时如果发现了 bean 依赖的 bean,会先去执行依赖的 bean 的 stop 方法
+					// 所以存在可能, Lifecycle 实例是实例 A 依赖的 bean,已经在执行 A 实例的 stop 时已执行过 stop 方法,执行完stop 方法后会将自己从 this.lifecycleBeans 中remove 掉
 					doStop(this.lifecycleBeans, member.name, latch, countDownBeanNames);
-				}
-				else if (member.bean instanceof SmartLifecycle) {
+				} else if (member.bean instanceof SmartLifecycle) {
 					// Already removed: must have been a dependent bean from another phase
 					latch.countDown();
 				}
 			}
 			try {
+				// 等到所有 Lifecycle 实例都执行完毕,当前线程才会执行下去
 				latch.await(this.timeout, TimeUnit.MILLISECONDS);
 				if (latch.getCount() > 0 && !countDownBeanNames.isEmpty() && logger.isInfoEnabled()) {
 					logger.info("Failed to shut down " + countDownBeanNames.size() + " bean" +

@@ -61,13 +61,26 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext that needs to be populated
-	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 * 创建一个新的AnnotationConfigApplicationContext
+	 * 首先会调用父类GenericApplicationContext的构造方法进行初始化DefaultListableBeanFactory
+	 * 并进行BeanDefinition的 scanner & readder的初始化
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 创建bd解析器,作用如下
+		// 1. 可以编程式的注册一个带注解的bean,因为有些情况是扫描不到的,比如动态生成的类,与三方系统交互得到的类等
+		// 得到reader后,调用reader.register(Class clazz)即可将这个类信息放入BeanDefinition的缓存map中
+		// 2. 可以替代下面的scanner,与其具备相同的功能, 有同一套的bd解析规则
+		// 3. 注册用户自定义的配置类, 如@ComponentScan,@Configuration, 比如Spring完成扫描需要解析AppConfig.java这个类中@ComponentScan注解
+		//	  在得到这个注解的值后扫描其代表的包下的所有bean,所以Spring想完成扫描,必须先将注册AppConfig.java,解析为bd后才能扫描其他的bean
+		// 4. 注册默认的BeanPostProcessor
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// 创建bd扫描器,作用如下
+		// spring完成扫描依靠scanner,扫描,解析,放入bd 缓存map中
+		// 会加载系统环境变量和资源读取器,并且定义了扫描包的核心方法doScan()
+		// 只会用于ApplicationContext中调用的包扫描
+		// 需要注意useDefaultFilters默认为true,如果要指定类型扫描,需要设置为false
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -82,12 +95,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	}
 
 	/**
-	 * Create a new AnnotationConfigApplicationContext, deriving bean definitions
-	 * from the given component classes and automatically refreshing the context.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
+	 *  通过给定的component 组件Bean, 创建一个AnnotationConfigApplicationContext
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 调用无参构造方法, 进行初始化设置
 		this();
 		register(componentClasses);
 		refresh();
@@ -102,6 +113,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
 		scan(basePackages);
+		// 手工禁用循环引用
+		// setAllowCircularReferences(false);
 		refresh();
 	}
 

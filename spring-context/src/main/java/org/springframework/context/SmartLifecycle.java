@@ -17,6 +17,18 @@
 package org.springframework.context;
 
 /**
+ *
+ * 关闭容器阶段对 SmartLifecycle 实例的处理逻辑
+ * 1. AbstractApplicationContext 的 doClose 方法在关闭容器时会被执行,调用 LifecycleProcessor 的 onClose 方法,由 LifeCycleProcessor 负责所有 Lifecycle 实例的关闭操作
+ * 2. 将所有的 Lifecycle 实例按照 phase 分组
+ * 3. 从 phase 值最大的分组开始,依次执行其中每个 LifeCycle 对象的 stop 方法
+ * 4. 对每个 SmartLifecycle 实例,新增 runnable 入参来启用新的线程并发 stop
+ * 5. 主线程使用 CountDownLatch,调用 SmartLifecycle 实例的 stop 方法后就会等待,等计数器达到 SmartLifecycle 总数或等待超时时间再继续向后执行
+ *
+ * SmartLifecycle 与 LifeCycle 的选择
+ * 1. 如果对启动顺序没有要求,关闭时也没有性能和时间的要求,就用 Lifecycle
+ * 2. 如果在乎启动/关闭顺序,就使用 SmartLifecycle
+ *
  * An extension of the {@link Lifecycle} interface for those objects that require
  * to be started upon {@code ApplicationContext} refresh and/or shutdown in a
  * particular order.
@@ -80,6 +92,8 @@ public interface SmartLifecycle extends Lifecycle, Phased {
 
 
 	/**
+	 * start 方法执行前的判断,返回 true 则执行,返回 false 则不执行 start
+	 *
 	 * Returns {@code true} if this {@code Lifecycle} component should get
 	 * started automatically by the container at the time that the containing
 	 * {@link ApplicationContext} gets refreshed.
@@ -97,6 +111,8 @@ public interface SmartLifecycle extends Lifecycle, Phased {
 	}
 
 	/**
+	 * 容器关闭后,spring 容器发现当前对象实现了 SmartLifecycle 就调用 stop(Runnable) 方法
+	 * 如果只是实现了 Lifecycle 就调用 stop 方法
 	 * Indicates that a Lifecycle component must stop if it is currently running.
 	 * <p>The provided callback is used by the {@link LifecycleProcessor} to support
 	 * an ordered, and potentially concurrent, shutdown of all components having a

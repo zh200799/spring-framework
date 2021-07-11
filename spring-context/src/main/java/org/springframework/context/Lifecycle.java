@@ -17,6 +17,9 @@
 package org.springframework.context;
 
 /**
+ * 感知容器变化的能力最终来自Lifecycle
+ * SmartLifecycle只是Lifecycle的增强版, 可以自定义优先级 getPhase,自主决定是否跟随容器启动 isAutoStartup,以及停止时能接受一个 runnable 对象,stop(Runnable)
+ *
  * A common interface defining methods for start/stop lifecycle control.
  * The typical use case for this is to control asynchronous processing.
  * <b>NOTE: This interface does not imply specific auto-startup semantics.
@@ -50,6 +53,7 @@ package org.springframework.context;
 public interface Lifecycle {
 
 	/**
+	 * bean 初始化完毕后调用该方法
 	 * Start this component.
 	 * <p>Should not throw an exception if the component is already running.
 	 * <p>In the case of a container, this will propagate the start signal to all
@@ -59,6 +63,7 @@ public interface Lifecycle {
 	void start();
 
 	/**
+	 * 容器关闭后调用该方法
 	 * Stop this component, typically in a synchronous fashion, such that the component is
 	 * fully stopped upon return of this method. Consider implementing {@link SmartLifecycle}
 	 * and its {@code stop(Runnable)} variant when asynchronous stop behavior is necessary.
@@ -76,6 +81,7 @@ public interface Lifecycle {
 	void stop();
 
 	/**
+	 * 返回当前是否在运行
 	 * Check whether this component is currently running.
 	 * <p>In the case of a container, this will return {@code true} only if <i>all</i>
 	 * components that apply are currently running.

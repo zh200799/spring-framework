@@ -194,6 +194,7 @@ public abstract class BeanUtils {
 		try {
 			ReflectionUtils.makeAccessible(ctor);
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
+				// 使用反射来创建对象
 				return KotlinDelegate.instantiateClass(ctor, args);
 			}
 			else {
@@ -209,6 +210,7 @@ public abstract class BeanUtils {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				// 使用反射来创建对象
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}

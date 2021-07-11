@@ -113,20 +113,32 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 
 
 	/**
+	 * 这里会将配置文件解析为一个个BeanDefinition,然后注册到BeanFactory中,并未进行初始化, 仅仅以beanName,BeanDefinition形式缓存起来
 	 * This implementation performs an actual refresh of this context's underlying
 	 * bean factory, shutting down the previous bean factory (if any) and
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// 如果当前ApplicationContext加载过BeanFactory,则销毁所有的Bean,关闭BeanFactory
+		// 应用中BeanFactory可以存在多个,这里只是判断当前ApplicationContext是否有BeanFactory
+		// ApplicationContext继承了BeanFactory,但是不应该理解为BeanFactory的实现类,其内部持有一个BeanFactory
 		if (hasBeanFactory()) {
+			// 如果存在就销毁Beans
 			destroyBeans();
+			// 如果存在就销毁BeanFactory
 			closeBeanFactory();
 		}
 		try {
+			// 初始化一个 DefaultListableBeanFactory
+			// 选择原因: extends AbstractAutowireCapableBeanFactory implements ConfigurableListableBeanFactory, BeanDefinitionRegistry
+			// 是实现的BeanFactory中功能最完整的BeanFactory, 并且可以配置BeanFactory,可以列出Bean,可以注册Bean
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			// 设置序列化
 			beanFactory.setSerializationId(getId());
+			// 设置BeanFactory中的两个属性, 是否允许Bean覆盖,是否允许循环引用
 			customizeBeanFactory(beanFactory);
+			// 加载Bean到BeanFactory中
 			loadBeanDefinitions(beanFactory);
 			this.beanFactory = beanFactory;
 		}
@@ -213,9 +225,11 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
 		if (this.allowBeanDefinitionOverriding != null) {
+			// 是否允许Bean定义覆盖
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
 		if (this.allowCircularReferences != null) {
+			// 是否允许Bean的循环依赖
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}
 	}

@@ -60,8 +60,7 @@ import org.springframework.util.ObjectUtils;
  * @see #getApplicationListeners(ApplicationEvent, ResolvableType)
  * @see SimpleApplicationEventMulticaster
  */
-public abstract class AbstractApplicationEventMulticaster
-		implements ApplicationEventMulticaster, BeanClassLoaderAware, BeanFactoryAware {
+public abstract class AbstractApplicationEventMulticaster implements ApplicationEventMulticaster, BeanClassLoaderAware, BeanFactoryAware {
 
 	private final DefaultListenerRetriever defaultRetriever = new DefaultListenerRetriever();
 
@@ -99,15 +98,19 @@ public abstract class AbstractApplicationEventMulticaster
 	}
 
 
+	// 此处为监听器的注册, 这里并没有将消息类型与监听器进行绑定
 	@Override
 	public void addApplicationListener(ApplicationListener<?> listener) {
 		synchronized (this.defaultRetriever) {
 			// Explicitly remove target for a proxy, if registered already,
 			// in order to avoid double invocations of the same listener.
+			// 判断该 listener 对象是否因为 aop 而创建了代理类, 避免重复回调同一监听器
 			Object singletonTarget = AopProxyUtils.getSingletonTarget(listener);
 			if (singletonTarget instanceof ApplicationListener) {
+				// 如果创建了代理类,则将原始单例对象中事件监听对象移除
 				this.defaultRetriever.applicationListeners.remove(singletonTarget);
 			}
+			// 将监听器加入到集合中, 是 LinkedHashSet 实例
 			this.defaultRetriever.applicationListeners.add(listener);
 			this.retrieverCache.clear();
 		}
@@ -167,22 +170,23 @@ public abstract class AbstractApplicationEventMulticaster
 	 * @return a Collection of ApplicationListeners
 	 * @see org.springframework.context.ApplicationListener
 	 */
-	protected Collection<ApplicationListener<?>> getApplicationListeners(
-			ApplicationEvent event, ResolvableType eventType) {
+	protected Collection<ApplicationListener<?>> getApplicationListeners(ApplicationEvent event, ResolvableType eventType) {
 
 		Object source = event.getSource();
 		Class<?> sourceType = (source != null ? source.getClass() : null);
+		// 定义监听 key, 为 eventType 和 sourceType
 		ListenerCacheKey cacheKey = new ListenerCacheKey(eventType, sourceType);
 
 		// Potential new retriever to populate
 		CachedListenerRetriever newRetriever = null;
 
 		// Quick check for existing entry on ConcurrentHashMap
+		// 检查 ConcurrentHashMap 缓存中是否存在该 key
 		CachedListenerRetriever existingRetriever = this.retrieverCache.get(cacheKey);
 		if (existingRetriever == null) {
+			// 如果缓存中没有渠道
 			// Caching a new ListenerRetriever if possible
-			if (this.beanClassLoader == null ||
-					(ClassUtils.isCacheSafe(event.getClass(), this.beanClassLoader) &&
+			if (this.beanClassLoader == null || (ClassUtils.isCacheSafe(event.getClass(), this.beanClassLoader) &&
 							(sourceType == null || ClassUtils.isCacheSafe(sourceType, this.beanClassLoader)))) {
 				newRetriever = new CachedListenerRetriever();
 				existingRetriever = this.retrieverCache.putIfAbsent(cacheKey, newRetriever);

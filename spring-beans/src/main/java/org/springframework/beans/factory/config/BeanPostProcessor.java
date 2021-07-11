@@ -58,6 +58,7 @@ import org.springframework.lang.Nullable;
 public interface BeanPostProcessor {
 
 	/**
+	 * 第一个参数为bean实例,第二个参数为bean名称,将处理后的返回值作为新的bean实例
 	 * Apply this {@code BeanPostProcessor} to the given new bean instance <i>before</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.
@@ -76,6 +77,7 @@ public interface BeanPostProcessor {
 	}
 
 	/**
+	 * 第一个参数为bean实例,第二个参数为bean名称,将处理后的返回值作为新的bean实例
 	 * Apply this {@code BeanPostProcessor} to the given new bean instance <i>after</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.
