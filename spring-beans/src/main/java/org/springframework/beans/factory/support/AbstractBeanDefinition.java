@@ -393,6 +393,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Nullable
 	public String getBeanClassName() {
 		Object beanClassObject = this.beanClass;
+		// 需要判断 beanClass 类型, classLoader != null, 时为 Class,否则为 String
 		if (beanClassObject instanceof Class) {
 			return ((Class<?>) beanClassObject).getName();
 		}
