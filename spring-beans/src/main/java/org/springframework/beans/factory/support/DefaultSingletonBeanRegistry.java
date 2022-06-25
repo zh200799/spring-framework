@@ -74,7 +74,6 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private static final int SUPPRESSED_EXCEPTIONS_LIMIT = 100;
 
 	// 一级Map Spring中完整的单例Bean对象缓存池
-	/** Cache of singleton objects: bean name to bean instance. */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
 	// 二级Map 单例工厂缓冲池,存放ObjectFactory类型的工厂对象
@@ -180,7 +179,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
-	 * Return the (raw) singleton object registered under the given name.
+	 * 返回指定的beanName 对应已经注册好的单例Bean
 	 * <p>Checks already instantiated singletons and also allows for an early
 	 * reference to a currently created singleton (resolving a circular reference).
 	 * @param beanName the name of the bean to look for
@@ -189,8 +188,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-		// 从一级缓冲池中获取Bean
-		// Quick check for existing instance without full singleton lock
+		// 从单例缓冲池中获取Bean
 		Object singletonObject = this.singletonObjects.get(beanName);
 		// 如果没取到, 且当前对象正在创建中, 即循环引用状态时!
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {

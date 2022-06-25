@@ -275,38 +275,28 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
-	 * Return an instance, which may be shared or independent, of the specified bean.
-	 *
+	 * 返回指定 Bean 实例, 可能是共享也可能是单例的
 	 * @param name          the name of the bean to retrieve
 	 * @param requiredType  the required type of the bean to retrieve
 	 * @param args          arguments to use when creating a bean instance using explicit arguments
 	 *                      (only applied when creating a new instance as opposed to retrieving an existing one)
-	 * @param typeCheckOnly whether the instance is obtained for a type check,
-	 *                      not for actual use
+	 * @param typeCheckOnly whether the instance is obtained for a type check,not for actual use
 	 * @return an instance of the bean
 	 * @throws BeansException if the bean could not be created
 	 */
 	@SuppressWarnings("unchecked")
-	protected <T> T doGetBean(
-			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
-			throws BeansException {
+	protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly) throws BeansException {
 
-		// 根据指定的名称获取被管理的bean名称,剥离指定名称中对容器相关依赖,如果指定的别名,将别名转换为规范的Bean名称
-		// 处理两种情况, 一个是FactoryBean前面的&, 一个是别名处理(传入一个别名,返回一个'正统'的beanName)
+		// 根据指定的名称获取被管理的bean名称
+		// 一: 抽离 FactoryBean前面的&
+		// 二: 将别名转换为Bean名称
 		String beanName = transformedBeanName(name);
 
 		//声明一个对象来存储Bean的引用
 		Object bean;
 
-		// doGetBean#1
-		// 第一次调用getSingleton方法!!!
+		// 第一次调用getSingleton方法,返回 null
 		// 检查单例池中是否有已注册的名称为beanName的对象, 以防用户已其他方式注册该名的对象
-		// eg:
-		// AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-		// ac.getBeanFactory().registerSingleton('aaName',aa);
-		// ac.register(App.class)
-		// ac.refresh();// 此时刷新容器,扫描到了aa,但是aa已经在容器中了
-		// 先从单例缓冲中取
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -324,21 +314,17 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		} else {
 
-			// doGetBean#3
-			// 判断当前需要初始化的bean 是否为正在创建的PrototypeBean集合中
-			// spring默认为singleton类型,这里一般都返回false
-			// 正在创建的PrototypeBean,在创建完成后会从该集合中remove
-			// 所以这里只会是循环引用的原型Bean创建,才会进入这个if, 即 原型做了循环依赖这里也出抛异常
-			// Fail if we're already creating this bean instance:
-			// We're assumably within a circular reference.
+			// beanName 是否为一个 Prototype 类型,且是正在创建的 Bean, 是则直接抛出异常
+			// Spring 默认为 Singleton 类型, 一般这里返回 false
 			if (isPrototypeCurrentlyInCreation(beanName)) {
+				// 只有循环引用的 prototype 类型的 Bean 才会进入此 case
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
-			// 检查这个BeanDefinition是否在容器中存在
+			// 检查当前 BeanFactory 中是否存在名为 beanName 的 BeanDefinition
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
-				// 如果当前容器不存在这个BeanDefinition, 从父容器中查询是否存在
+				// 如果当前容器不存在这个 BeanDefinition, 从父容器中查询是否存在
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(nameToLookup, requiredType, args, typeCheckOnly);
@@ -355,7 +341,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
-				// typeCheckOnly=false,将当前beanName放入一个alreadyCreated的Set集合中
+				// typeCheckOnly=false,将当前 beanName 放入一个 alreadyCreated 的 Set 集合中
 				markBeanAsCreated(beanName);
 			}
 
@@ -1203,8 +1189,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected boolean isPrototypeCurrentlyInCreation(String beanName) {
 		Object curVal = this.prototypesCurrentlyInCreation.get();
-		return (curVal != null &&
-				(curVal.equals(beanName) || (curVal instanceof Set && ((Set<?>) curVal).contains(beanName))));
+		return (curVal != null && (curVal.equals(beanName) || (curVal instanceof Set && ((Set<?>) curVal).contains(beanName))));
 	}
 
 	/**
