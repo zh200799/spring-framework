@@ -23,6 +23,10 @@ import org.springframework.beans.PropertyValues;
 import org.springframework.lang.Nullable;
 
 /**
+ * 主要用于目标对象实例化前后过程处理,即实例属性设置
+ * Instantiation表示实例化:实例化的意思在对象还未生成
+ * Initialization表示初始化:初始化的意思在对象已经生成
+ *
  * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
  * and a callback after instantiation but before explicit properties are set or
  * autowiring occurs.
@@ -47,6 +51,9 @@ import org.springframework.lang.Nullable;
 public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 
 	/**
+	 * 在目标对象实例化之前调用, 方法返回值类型是 Object
+	 * 此时目标对象还未实例化, 可以使用返回值来代替原本该生成的目标对象的实例(如代理对象)
+	 * 如果方法返回值代替原本该生成的目标对象, 后续 Bean 生命周期只有 postPostAfterInitialization 方法会被调用,其他方法不会被调用
 	 * Apply this BeanPostProcessor <i>before the target bean gets instantiated</i>.
 	 * The returned bean object may be a proxy to use instead of the target bean,
 	 * effectively suppressing default instantiation of the target bean.
@@ -76,6 +83,8 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	}
 
 	/**
+	 * 目标对象实例化之后调用,此时对象已被实例化, 但是该实例属性还未被设置,都是 null
+	 * 这里的返回值决定要不要调用 postProcessPropertyValues 方法
 	 * Perform operations after the bean has been instantiated, via a constructor or factory method,
 	 * but before Spring property population (from explicit properties or autowiring) occurs.
 	 * <p>This is the ideal callback for performing custom field injection on the given bean
@@ -95,6 +104,8 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	}
 
 	/**
+	 * postProcessAfterInstantiation 方法返回 true 时才会被调用, 可以在方法内对属性值进行修改
+	 *
 	 * Post-process the given property values before the factory applies them
 	 * to the given bean, without any need for property descriptors.
 	 * <p>Implementations should return {@code null} (the default) if they provide a custom
@@ -113,8 +124,7 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @see #postProcessPropertyValues
 	 */
 	@Nullable
-	default PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
-			throws BeansException {
+	default PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) throws BeansException {
 
 		return null;
 	}
@@ -141,9 +151,7 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 */
 	@Deprecated
 	@Nullable
-	default PropertyValues postProcessPropertyValues(
-			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeansException {
-
+	default PropertyValues postProcessPropertyValues(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeansException {
 		return pvs;
 	}
 

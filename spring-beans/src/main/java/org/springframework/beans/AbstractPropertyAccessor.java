@@ -102,20 +102,17 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 				// We can attempt to deal only with less serious exceptions.
 				try {
 					setPropertyValue(pv);
-				}
-				catch (NotWritablePropertyException ex) {
+				} catch (NotWritablePropertyException ex) {
 					if (!ignoreUnknown) {
 						throw ex;
 					}
 					// Otherwise, just ignore it and continue...
-				}
-				catch (NullValueInNestedPathException ex) {
+				} catch (NullValueInNestedPathException ex) {
 					if (!ignoreInvalid) {
 						throw ex;
 					}
 					// Otherwise, just ignore it and continue...
-				}
-				catch (PropertyAccessException ex) {
+				} catch (PropertyAccessException ex) {
 					if (propertyAccessExceptions == null) {
 						propertyAccessExceptions = new ArrayList<>();
 					}

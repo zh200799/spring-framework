@@ -32,7 +32,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * 默认使用无参构造方法创建Bean实例
+ * 默认使用无参构造方法策略创建 Bean 实例
  * Simple object instantiation strategy for use in a BeanFactory.
  *
  * <p>Does not support Method Injection, although it provides hooks for subclasses
@@ -60,7 +60,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
-		// 如果存在方法覆盖或者动态替换则使用CGLIB进行动态代理, 因为在创建代理的同事将动态方法的织入
+		// 判断是否存在方法覆盖, 存在则使用 Cglib 进行动态代理
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
@@ -82,17 +82,15 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 							constructorToUse = clazz.getDeclaredConstructor();
 						}
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
-					}
-					catch (Throwable ex) {
+					} catch (Throwable ex) {
 						throw new BeanInstantiationException(clazz, "No default constructor found", ex);
 					}
 				}
 			}
 			// 通过反射调用构造方法 constructor.newInstance(arg) 进行实例化
 			return BeanUtils.instantiateClass(constructorToUse);
-		}
-		else {
-			// 使用cglib进行实例化
+		} else {
+			// 使用 cglib 进行实例化, 会生成 cglib subclass
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}
@@ -108,9 +106,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	}
 
 	@Override
-	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
-			final Constructor<?> ctor, Object... args) {
-
+	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner, final Constructor<?> ctor, Object... args) {
 		if (!bd.hasMethodOverrides()) {
 			if (System.getSecurityManager() != null) {
 				// use own privileged to change accessibility (when security is on)
@@ -120,8 +116,8 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				});
 			}
 			return BeanUtils.instantiateClass(ctor, args);
-		}
-		else {
+		} else {
+			// 对于简单实例化策略, 不支持使用 CGlib 进行实例化
 			return instantiateWithMethodInjection(bd, beanName, owner, ctor, args);
 		}
 	}
@@ -132,9 +128,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	 * the Method Injection specified in the given RootBeanDefinition.
 	 * Instantiation should use the given constructor and parameters.
 	 */
-	protected Object instantiateWithMethodInjection(RootBeanDefinition bd, @Nullable String beanName,
-			BeanFactory owner, @Nullable Constructor<?> ctor, Object... args) {
-
+	protected Object instantiateWithMethodInjection(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner, @Nullable Constructor<?> ctor, Object... args) {
 		throw new UnsupportedOperationException("Method Injection not supported in SimpleInstantiationStrategy");
 	}
 

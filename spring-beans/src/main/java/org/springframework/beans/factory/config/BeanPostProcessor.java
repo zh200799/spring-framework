@@ -20,6 +20,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.lang.Nullable;
 
 /**
+ * Instantiation表示实例化:实例化的意思在对象还未生成
+ *  * Initialization表示初始化:初始化的意思在对象已经生成
  * Factory hook that allows for custom modification of new bean instances &mdash;
  * for example, checking for marker interfaces or wrapping beans with proxies.
  *

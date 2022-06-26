@@ -237,8 +237,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		AbstractNestablePropertyAccessor nestedPa;
 		try {
 			nestedPa = getPropertyAccessorForPropertyPath(propertyName);
-		}
-		catch (NotReadablePropertyException ex) {
+		} catch (NotReadablePropertyException ex) {
 			throw new NotWritablePropertyException(getRootClass(), this.nestedPath + propertyName,
 					"Nested property in path '" + propertyName + "' does not exist", ex);
 		}
@@ -264,8 +263,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				pv.getOriginalPropertyValue().resolvedTokens = tokens;
 			}
 			nestedPa.setPropertyValue(tokens, pv);
-		}
-		else {
+		} else {
 			setPropertyValue(tokens, pv);
 		}
 	}
@@ -273,8 +271,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException {
 		if (tokens.keys != null) {
 			processKeyedProperty(tokens, pv);
-		}
-		else {
+		} else {
 			processLocalProperty(tokens, pv);
 		}
 	}
@@ -437,13 +434,11 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 			if (!Boolean.FALSE.equals(pv.conversionNecessary)) {
 				if (pv.isConverted()) {
 					valueToApply = pv.getConvertedValue();
-				}
-				else {
+				} else {
 					if (isExtractOldValueForEditor() && ph.isReadable()) {
 						try {
 							oldValue = ph.getValue();
-						}
-						catch (Exception ex) {
+						} catch (Exception ex) {
 							if (ex instanceof PrivilegedActionException) {
 								ex = ((PrivilegedActionException) ex).getException();
 							}
@@ -453,23 +448,18 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 							}
 						}
 					}
-					valueToApply = convertForProperty(
-							tokens.canonicalName, oldValue, originalValue, ph.toTypeDescriptor());
+					valueToApply = convertForProperty(tokens.canonicalName, oldValue, originalValue, ph.toTypeDescriptor());
 				}
 				pv.getOriginalPropertyValue().conversionNecessary = (valueToApply != originalValue);
 			}
 			ph.setValue(valueToApply);
-		}
-		catch (TypeMismatchException ex) {
+		} catch (TypeMismatchException ex) {
 			throw ex;
-		}
-		catch (InvocationTargetException ex) {
-			PropertyChangeEvent propertyChangeEvent = new PropertyChangeEvent(
-					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
+		} catch (InvocationTargetException ex) {
+			PropertyChangeEvent propertyChangeEvent = new PropertyChangeEvent(getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
 			if (ex.getTargetException() instanceof ClassCastException) {
 				throw new TypeMismatchException(propertyChangeEvent, ph.getPropertyType(), ex.getTargetException());
-			}
-			else {
+			} else {
 				Throwable cause = ex.getTargetException();
 				if (cause instanceof UndeclaredThrowableException) {
 					// May happen e.g. with Groovy-generated methods
@@ -477,10 +467,8 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				}
 				throw new MethodInvocationException(propertyChangeEvent, cause);
 			}
-		}
-		catch (Exception ex) {
-			PropertyChangeEvent pce = new PropertyChangeEvent(
-					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
+		} catch (Exception ex) {
+			PropertyChangeEvent pce = new PropertyChangeEvent(getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
 			throw new MethodInvocationException(pce, ex);
 		}
 	}

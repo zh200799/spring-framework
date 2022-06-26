@@ -311,6 +311,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 
 		@Override
 		public void setValue(@Nullable Object value) throws Exception {
+			// 查找 bean 中的 set 方法
 			Method writeMethod = (this.pd instanceof GenericTypeAwarePropertyDescriptor ?
 					((GenericTypeAwarePropertyDescriptor) this.pd).getWriteMethodForActualAccess() :
 					this.pd.getWriteMethod());
@@ -322,12 +323,10 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 				try {
 					AccessController.doPrivileged((PrivilegedExceptionAction<Object>)
 							() -> writeMethod.invoke(getWrappedInstance(), value), acc);
-				}
-				catch (PrivilegedActionException ex) {
+				} catch (PrivilegedActionException ex) {
 					throw ex.getException();
 				}
-			}
-			else {
+			} else {
 				ReflectionUtils.makeAccessible(writeMethod);
 				writeMethod.invoke(getWrappedInstance(), value);
 			}

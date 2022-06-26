@@ -195,14 +195,14 @@ public abstract class BeanUtils {
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
 				// 使用反射来创建对象
 				return KotlinDelegate.instantiateClass(ctor, args);
-			}
-			else {
+			} else {
 				Class<?>[] parameterTypes = ctor.getParameterTypes();
 				Assert.isTrue(args.length <= parameterTypes.length, "Can't specify more arguments than constructor parameters");
 				Object[] argsWithDefaultValues = new Object[args.length];
 				// 构造函数入参初始化, 参数为空时进行默认值初始化
 				for (int i = 0 ; i < args.length; i++) {
 					if (args[i] == null) {
+						// 参数为空, 则初始化初值赋予
 						Class<?> parameterType = parameterTypes[i];
 						argsWithDefaultValues[i] = (parameterType.isPrimitive() ? DEFAULT_TYPE_VALUES.get(parameterType) : null);
 					} else {
@@ -212,17 +212,13 @@ public abstract class BeanUtils {
 				// 使用反射来创建对象
 				return ctor.newInstance(argsWithDefaultValues);
 			}
-		}
-		catch (InstantiationException ex) {
+		} catch (InstantiationException ex) {
 			throw new BeanInstantiationException(ctor, "Is it an abstract class?", ex);
-		}
-		catch (IllegalAccessException ex) {
+		} catch (IllegalAccessException ex) {
 			throw new BeanInstantiationException(ctor, "Is the constructor accessible?", ex);
-		}
-		catch (IllegalArgumentException ex) {
+		} catch (IllegalArgumentException ex) {
 			throw new BeanInstantiationException(ctor, "Illegal arguments for constructor", ex);
-		}
-		catch (InvocationTargetException ex) {
+		} catch (InvocationTargetException ex) {
 			throw new BeanInstantiationException(ctor, "Constructor threw exception", ex.getTargetException());
 		}
 	}
