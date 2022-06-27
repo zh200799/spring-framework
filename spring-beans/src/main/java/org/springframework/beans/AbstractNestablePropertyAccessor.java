@@ -253,8 +253,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 			AbstractNestablePropertyAccessor nestedPa;
 			try {
 				nestedPa = getPropertyAccessorForPropertyPath(propertyName);
-			}
-			catch (NotReadablePropertyException ex) {
+			} catch (NotReadablePropertyException ex) {
 				throw new NotWritablePropertyException(getRootClass(), this.nestedPath + propertyName,
 						"Nested property in path '" + propertyName + "' does not exist", ex);
 			}
