@@ -183,8 +183,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 				// Skip this interceptor and invoke the next in the chain.
 				return proceed();
 			}
-		}
-		else {
+		} else {
 			// 普通拦截器,直接调用拦截器
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
