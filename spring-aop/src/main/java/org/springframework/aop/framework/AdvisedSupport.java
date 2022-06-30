@@ -356,8 +356,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 			throw new AopConfigException("Cannot add advisor: Configuration is frozen.");
 		}
 		if (pos > this.advisors.size()) {
-			throw new IllegalArgumentException(
-					"Illegal position " + pos + " in advisor list with size " + this.advisors.size());
+			throw new IllegalArgumentException("Illegal position " + pos + " in advisor list with size " + this.advisors.size());
 		}
 		this.advisors.add(pos, advisor);
 		adviceChanged();

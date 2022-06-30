@@ -30,6 +30,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Objenesis-based extension of {@link CglibAopProxy} to create proxy instances
  * without invoking the constructor of the class. Used by default as of Spring 4.
+ * 基于字节码增强, 继承自 CglibAopProxy, 在实现动态代理时, 不需要调用类的构造方法
  *
  * @author Oliver Gierke
  * @author Juergen Hoeller

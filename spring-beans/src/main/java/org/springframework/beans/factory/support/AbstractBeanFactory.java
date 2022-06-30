@@ -342,7 +342,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 			// 默认 typeCheckOnly 为 false,
 			if (!typeCheckOnly) {
-				// 标记为创建 Bean, 将当前 beanName 放入一个 alreadyCreated 的 Set 集合中
+				// 将 Bean 标记为已创建, 将当前 beanName 放入一个 alreadyCreated 的 Set 集合中
 				markBeanAsCreated(beanName);
 			}
 
@@ -393,6 +393,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw ex;
 						}
 					});
+					// 此时 sharedInstance 是声明的 bean 对象, 这里会进行动态代理判断
+					// 如果此 bean 对象时 FactoryBean, 则 getObjectForBeanInstance 方法返回 FactoryBean#getBoject
 					bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				} else if (mbd.isPrototype()) {
 					// 创建prototype实例
@@ -1866,8 +1868,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
-	 * Get the object for the given bean instance, either the bean
-	 * instance itself or its created object in case of a FactoryBean.
+	 * 获取给定 bean 的实例对象
+	 * bean 如果是 FactoryBean, 则获取 FactoryBean#getObject
+	 * bean 不是 FactoryBean, 则返回实例本身
 	 *
 	 * @param beanInstance the shared bean instance
 	 * @param name         the name that may include factory dereference prefix
@@ -1894,6 +1897,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
+		// 如果 beanInstance 不是 FactoryBean, 则直接返回, 是 FactoryBean 则创建一个 Bean 实例
 		if (!(beanInstance instanceof FactoryBean)) {
 			return beanInstance;
 		}
@@ -1905,13 +1909,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			object = getCachedObjectForFactoryBean(beanName);
 		}
 		if (object == null) {
-			// Return bean instance from factory.
+			// 将 object 对象转换为 FactoryBean 对象
 			FactoryBean<?> factory = (FactoryBean<?>) beanInstance;
 			// Caches object obtained from FactoryBean if it is a singleton.
 			if (mbd == null && containsBeanDefinition(beanName)) {
 				mbd = getMergedLocalBeanDefinition(beanName);
 			}
 			boolean synthetic = (mbd != null && mbd.isSynthetic());
+			// 从 FactoryBean 中获取期望的代理对象
 			object = getObjectFromFactoryBean(factory, beanName, !synthetic);
 		}
 		return object;

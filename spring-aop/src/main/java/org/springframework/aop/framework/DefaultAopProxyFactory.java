@@ -60,8 +60,8 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 		// 4个进入cglib的判断条件
 		// !IN_NATIVE_IMAGE
 		// optimize == true
-		// proxyTargetClass== true
-		// hasNoUserSuppliedProxyInterfaces ==true
+		// 目标对象对象是类 proxyTargetClass == true
+		// 没有提供代理接口 hasNoUserSuppliedProxyInterfaces ==true
 		// 目标对象实现了接口, 默认情况下回采用JDK的动态代理实现AOP,可以强制使用CGLIB实现AOP
 		// 目标对象没有实现接口, 必须采用CGLIB
 		// JDK动态代理只能对实现了接口的类生成代理,而不能针对类
@@ -69,8 +69,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 		if (!IN_NATIVE_IMAGE && (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config))) {
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {
-				throw new AopConfigException("TargetSource cannot determine target class: " +
-						"Either an interface or a target is required for proxy creation.");
+				throw new AopConfigException("TargetSource cannot determine target class: " + "Either an interface or a target is required for proxy creation.");
 			}
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
