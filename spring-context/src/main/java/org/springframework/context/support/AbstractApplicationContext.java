@@ -589,7 +589,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			try {
 				// 设置 beanFactory 的后置处理器 即 BeanFactoryPostProcessor
-				// 如果bean实现了BeanFactoryPostProcessor这个接口,则容器在初始化以后,Spring会负责调用里面的postProcessBeanFactory方法
+				// 如果bean实现了 BeanFactoryPostProcessor 这个接口,则容器在初始化以后,Spring会负责调用里面的postProcessBeanFactory方法
 				// 这里为Spring提供给子类的扩展点,在这里所有的Bean都加载完成,注册完成了,但未进行初始化
 				// 子类可以在这里添加一些特殊的BeanFactoryPostProcessor做点事
 				postProcessBeanFactory(beanFactory);
@@ -678,8 +678,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Store pre-refresh ApplicationListeners...
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
-		}
-		else {
+		} else {
 			// Reset local application listeners to pre-refresh state.
 			this.applicationListeners.clear();
 			this.applicationListeners.addAll(this.earlyApplicationListeners);

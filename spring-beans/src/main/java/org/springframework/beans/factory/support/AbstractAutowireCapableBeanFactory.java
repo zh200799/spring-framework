@@ -1268,7 +1268,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// FactoryMethodName不为空则代表使用工厂方法
 		if (mbd.getFactoryMethodName() != null) {
-			// 采用工厂方法实例化
+			// 采用工厂方法实例化, XML 方式不会进入
+			// 理解: @Configuration 注解修饰的 Bean 作为工厂, 其中 @Bean 注解修饰的方法是工厂方法,产生 Bean 对象
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
 
@@ -1429,9 +1430,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @return a BeanWrapper for the new instance
 	 * @see #getBean(String, Object[])
 	 */
-	protected BeanWrapper instantiateUsingFactoryMethod(
-			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
-
+	protected BeanWrapper instantiateUsingFactoryMethod(String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
 		return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, explicitArgs);
 	}
 
