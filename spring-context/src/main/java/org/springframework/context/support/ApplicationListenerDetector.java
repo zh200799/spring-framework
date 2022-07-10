@@ -59,6 +59,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// BeanDefinition Merge 后类型为 ApplicationListener,则放入 singletonNames 中,并标识是否为单例
 		if (ApplicationListener.class.isAssignableFrom(beanType)) {
 			this.singletonNames.put(beanName, beanDefinition.isSingleton());
 		}
@@ -74,6 +75,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 		if (bean instanceof ApplicationListener) {
 			// potentially not detected as a listener by getBeanNamesForType retrieval
 			Boolean flag = this.singletonNames.get(beanName);
+			// bean 为 ApplicationListener 则判断是否为单例
 			if (Boolean.TRUE.equals(flag)) {
 				// singleton bean (top-level or inner): register on the
 				// 注册监听器, 实质为放到 applicationEventMulticaster 这个成员对象的 defaultRetriever 集合中
@@ -81,10 +83,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 			} else if (Boolean.FALSE.equals(flag)) {
 				if (logger.isWarnEnabled() && !this.applicationContext.containsBean(beanName)) {
 					// inner bean with other scope - can't reliably process events
-					logger.warn("Inner bean '" + beanName + "' implements ApplicationListener interface " +
-							"but is not reachable for event multicasting by its containing ApplicationContext " +
-							"because it does not have singleton scope. Only top-level listener beans are allowed " +
-							"to be of non-singleton scope.");
+					logger.warn("Inner bean '" + beanName + "' implements ApplicationListener interface but is not reachable for event multicasting by its containing ApplicationContext because it does not have singleton scope. Only top-level listener beans are allowed to be of non-singleton scope.");
 				}
 				this.singletonNames.remove(beanName);
 			}
@@ -114,8 +113,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	@Override
 	public boolean equals(@Nullable Object other) {
-		return (this == other || (other instanceof ApplicationListenerDetector &&
-				this.applicationContext == ((ApplicationListenerDetector) other).applicationContext));
+		return (this == other || (other instanceof ApplicationListenerDetector && this.applicationContext == ((ApplicationListenerDetector) other).applicationContext));
 	}
 
 	@Override
