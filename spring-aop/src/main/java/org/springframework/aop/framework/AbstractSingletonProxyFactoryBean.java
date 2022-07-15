@@ -39,8 +39,7 @@ import org.springframework.util.ClassUtils;
  * @since 2.0
  */
 @SuppressWarnings("serial")
-public abstract class AbstractSingletonProxyFactoryBean extends ProxyConfig
-		implements FactoryBean<Object>, BeanClassLoaderAware, InitializingBean {
+public abstract class AbstractSingletonProxyFactoryBean extends ProxyConfig implements FactoryBean<Object>, BeanClassLoaderAware, InitializingBean {
 
 	@Nullable
 	private Object target;

@@ -692,7 +692,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 进行对象属性装配工作
 			populateBean(beanName, mbd, instanceWrapper);
 			// 调用bean初始化方法,各种生命周期回调及AOP
-			// 执行 aware 赋值,afterPropertiesSet, init-method,BeanPostProcessor#before/after
+			// 执行 aware 赋值,顺序调用@PostConstruct,afterPropertiesSet, init-method,BeanPostProcessor#before/after
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		} catch (Throwable ex) {
 			if (ex instanceof BeanCreationException && beanName.equals(((BeanCreationException) ex).getBeanName())) {

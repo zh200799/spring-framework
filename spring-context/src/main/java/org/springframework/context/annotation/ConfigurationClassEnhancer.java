@@ -315,11 +315,10 @@ class ConfigurationClassEnhancer {
 			}
 
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
+				// 如果当前正在执行的 @Bean 方法返回类型是 BeanFactoryPostProcessor, 则输出警告日志提示
 				// The factory is calling the bean method in order to instantiate and register the bean
-				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
-				// create the bean instance.
-				if (logger.isInfoEnabled() &&
-						BeanFactoryPostProcessor.class.isAssignableFrom(beanMethod.getReturnType())) {
+				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually create the bean instance.
+				if (logger.isInfoEnabled() && BeanFactoryPostProcessor.class.isAssignableFrom(beanMethod.getReturnType())) {
 					logger.info(String.format("@Bean method %s.%s is non-static and returns an object " +
 									"assignable to Spring's BeanFactoryPostProcessor interface. This will " +
 									"result in a failure to process annotations such as @Autowired, " +

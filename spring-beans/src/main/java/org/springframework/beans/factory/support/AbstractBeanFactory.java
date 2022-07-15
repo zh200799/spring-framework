@@ -1558,6 +1558,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				return mbd.getBeanClass();
 			}
 			if (System.getSecurityManager() != null) {
+				// Java 安全管理器开启时, 获取 classloader 需要对应权限
 				return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () -> doResolveBeanClass(mbd, typesToMatch), getAccessControlContext());
 			} else {
 				return doResolveBeanClass(mbd, typesToMatch);
