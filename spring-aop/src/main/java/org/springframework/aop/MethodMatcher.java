@@ -53,6 +53,8 @@ import java.lang.reflect.Method;
 public interface MethodMatcher {
 
 	/**
+	 * 用于测试此切入点是否与目标类上的给定方法匹配
+	 * 创建 AOP 代理时可以执行此 match, 以避免对每个方法调用进行测试
 	 * Perform static checking whether the given method matches.
 	 * <p>If this returns {@code false} or if the {@link #isRuntime()}
 	 * method returns {@code false}, no runtime check (i.e. no
@@ -65,6 +67,7 @@ public interface MethodMatcher {
 	boolean matches(Method method, Class<?> targetClass);
 
 	/**
+	 * 两个参数的 match 方法返回 true, 且 isRuntime 页返回 true 则会调用三个参数的 match 方法
 	 * Is this MethodMatcher dynamic, that is, must a final call be made on the
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} method at
 	 * runtime even if the 2-arg matches method returns {@code true}?

@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.springframework.aop.MethodMatcher;
 
 /**
+ * MethodMatcher 的一种模版, 静态的方法匹配, isRuntime 永远为 false
  * Convenient abstract superclass for static method matchers, which don't care
  * about arguments at runtime.
  *

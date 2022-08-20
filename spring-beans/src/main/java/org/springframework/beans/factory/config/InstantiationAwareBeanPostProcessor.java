@@ -105,7 +105,7 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 
 	/**
 	 * postProcessAfterInstantiation 方法返回 true 时才会被调用, 可以在方法内对属性值进行修改
-	 *
+	 * 最终调用 org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyPropertyValues进行赋值
 	 * Post-process the given property values before the factory applies them
 	 * to the given bean, without any need for property descriptors.
 	 * <p>Implementations should return {@code null} (the default) if they provide a custom
