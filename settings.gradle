@@ -63,3 +63,5 @@ settings.gradle.projectsLoaded {
 		}
 	}
 }
+include 'zh-source-test'
+
