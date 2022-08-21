@@ -289,8 +289,12 @@ configure(allprojects) { project ->
 			cacheChangingModulesFor 0, "seconds"
 		}
 		repositories {
-			mavenCentral()
-			maven { url "http://repo.spring.io/libs-spring-framework-build" }
+			maven { url 'https://maven.aliyun.com/repository/public'}
+			maven { url 'https://maven.aliyun.com/repository/spring'}
+
+			// 原始, 网络受限,不通
+//			mavenCentral()
+//			maven { url "http://repo.spring.io/libs-spring-framework-build" }
 		}
 	}
 	configurations.all {

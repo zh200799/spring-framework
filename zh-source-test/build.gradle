@@ -6,8 +6,10 @@ group 'org.springframework'
 version '5.3.1'
 
 repositories {
-    maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
-    mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/public'}
+    maven { url 'https://maven.aliyun.com/repository/spring'}
+    // 原始, 网络受限,不通
+//    mavenCentral()
 }
 
 dependencies {
